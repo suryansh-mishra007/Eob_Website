@@ -117,7 +117,7 @@ a { color: var(--green); }
   cursor: pointer;
   border-bottom: 1px solid var(--panel-border);
 }
-.suggestion-item:hover { background: rgba(57, 209, 94, 0.08); color: var(--text); }
+.suggestion-item:hover { background: rgba(111, 227, 138, 0.08); color: var(--text); }
 .suggestion-item:last-child, .suggestion-empty:last-child { border-bottom: none; }
 
 .map-root {
@@ -263,3 +263,101 @@ input[type="range"]::-moz-range-thumb {
 }
 .footer-mark { font-weight: 700; color: var(--text); margin-bottom: 6px; }
 .footer-mark .brand-dot { color: var(--green); }
+
+/* ===========================================
+   NETFLIX-STYLE INTRO SEQUENCE
+   Adapted from Slime-Mould-Deck/index.html's intro (same choreography and
+   timing: veins grow in, a core flash pops, the wordmark reveals) --
+   recolored to this site's own green/amber palette and using the site's
+   existing fonts instead of pulling in a new display typeface.
+   =========================================== */
+:root {
+  --intro-ease: cubic-bezier(.16, 1, .3, 1);
+}
+.intro-overlay {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+}
+.intro-overlay.fading { animation: introFadeOut 0.9s ease forwards; pointer-events: none; }
+@keyframes introFadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
+
+.intro-veins { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-veins path {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  opacity: 0;
+  stroke-dasharray: 2200;
+  stroke-dashoffset: 2200;
+  filter: drop-shadow(0 0 8px rgba(111, 227, 138, 0.45));
+}
+.intro-veins path.moss { stroke: var(--green-ink); }
+.intro-overlay.playing .intro-veins path { animation: introGrow 1.7s var(--intro-ease) forwards; }
+.intro-overlay.playing .intro-veins path:nth-child(2) { animation-delay: 0.08s; }
+.intro-overlay.playing .intro-veins path:nth-child(3) { animation-delay: 0.16s; }
+.intro-overlay.playing .intro-veins path:nth-child(4) { animation-delay: 0.05s; }
+.intro-overlay.playing .intro-veins path:nth-child(5) { animation-delay: 0.22s; }
+.intro-overlay.playing .intro-veins path:nth-child(6) { animation-delay: 0.12s; }
+@keyframes introGrow { 0% { opacity: 0; stroke-dashoffset: 2200; } 10% { opacity: 0.85; } 100% { opacity: 0.85; stroke-dashoffset: 0; } }
+
+.intro-core {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 20px 10px rgba(111, 227, 138, 0.45);
+  opacity: 0; transform: scale(0);
+}
+.intro-overlay.playing .intro-core { animation: introCore 0.6s ease-out 1.55s forwards; }
+@keyframes introCore { 0% { opacity: 0; transform: scale(0); } 60% { opacity: 1; transform: scale(6); } 100% { opacity: 1; transform: scale(5); } }
+
+.intro-flash {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle, #fff 0%, var(--green) 32%, transparent 68%);
+  opacity: 0; pointer-events: none;
+}
+.intro-overlay.playing .intro-flash { animation: introFlash 0.55s ease-out 2.05s forwards; }
+@keyframes introFlash { 0% { opacity: 0; transform: scale(0.15); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(3.2); } }
+
+.intro-wordmark { position: relative; z-index: 5; text-align: center; opacity: 0; }
+.intro-overlay.playing .intro-wordmark { animation: introWord 1.3s var(--intro-ease) 2.25s forwards; }
+@keyframes introWord { 0% { opacity: 0; transform: scale(1.35); letter-spacing: 0.4em; } 35% { opacity: 1; } 100% { opacity: 1; transform: scale(1); letter-spacing: 0.06em; } }
+.intro-wordmark .l1 {
+  display: block;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 72px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.intro-wordmark .l1 em { font-style: normal; font-weight: 700; color: var(--green); }
+.intro-wordmark .l2 {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: 0.5em;
+  color: var(--green-ink);
+  margin-top: 16px;
+}
+@media (max-width: 640px) {
+  .intro-wordmark .l1 { font-size: 40px; }
+  .intro-wordmark .l2 { font-size: 11px; letter-spacing: 0.32em; }
+}
+
+.intro-skip {
+  position: absolute; bottom: 32px; right: 32px; z-index: 6;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--text-dim);
+  border: 1px solid var(--panel-border);
+  padding: 9px 16px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.4s ease, color 0.25s, border-color 0.25s;
+}
+.intro-overlay.playing .intro-skip { animation: introSkipIn 0.5s ease 0.7s forwards; }
+@keyframes introSkipIn { to { opacity: 1; } }
+.intro-skip:hover { color: var(--green); border-color: var(--green-ink); }

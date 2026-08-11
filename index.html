@@ -9,9 +9,27 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
+
+<div class="intro-overlay" id="introOverlay">
+  <svg class="intro-veins" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+    <path d="M-40,-40 C300,60 500,220 700,380 C840,490 900,520 960,540" />
+    <path d="M1960,-40 C1620,60 1420,220 1220,380 C1080,490 1020,520 960,540" />
+    <path class="moss" d="M-40,1120 C300,1020 500,860 700,700 C840,590 900,560 960,540" />
+    <path class="moss" d="M1960,1120 C1620,1020 1420,860 1220,700 C1080,590 1020,560 960,540" />
+    <path d="M960,-40 C955,160 965,340 960,540" />
+    <path class="moss" d="M960,1120 C965,940 955,760 960,540" />
+  </svg>
+  <div class="intro-core"></div>
+  <div class="intro-flash"></div>
+  <div class="intro-wordmark">
+    <span class="l1">ELEMENTS OF <em>BIOLOGY</em></span>
+    <span class="l2">SLIME MOLD PATHFINDING</span>
+  </div>
+  <div class="intro-skip" id="introSkip">SKIP INTRO</div>
+</div>
 
 <header class="site-header">
   <div class="wrap header-inner">
@@ -86,6 +104,7 @@
   </div>
 </footer>
 
+<script src="intro.js?v=2"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="archive_mumbai_map/roads-data.js?v=1"></script>
 <script src="physarum-solver.js?v=1"></script>
