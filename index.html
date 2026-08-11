@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EOB — Elements of Biology | Slime Mold Pathfinding</title>
+<meta name="description" content="A biomimicry project simulating Physarum polycephalum growing a tendril network across real Mumbai streets to find a route between two points.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%2339d15e'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%230d1210' stroke-width='1.5'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="#top" class="brand">EOB<span class="brand-dot">.</span></a>
+    <p class="header-tag">Slime mold pathfinding, live on real Mumbai streets</p>
+  </div>
+</header>
+
+<main id="top">
+  <section class="app-section">
+    <div class="app-wrap">
+
+      <div class="canvas-wrap">
+        <div class="address-row">
+          <div class="address-field">
+            <input type="text" id="startAddressInput" placeholder="Start address" autocomplete="off">
+            <div class="suggestions" id="startSuggestions"></div>
+          </div>
+          <div class="address-field">
+            <input type="text" id="endAddressInput" placeholder="End address" autocomplete="off">
+            <div class="suggestions" id="endSuggestions"></div>
+          </div>
+        </div>
+        <div class="map-root">
+          <div id="leafletMap"></div>
+          <canvas id="mapCanvas" aria-label="Slime mold tendril-growth pathfinding simulation"></canvas>
+        </div>
+        <p class="canvas-hint" id="canvasHint">Search an address, or click the map, to drop a start point.</p>
+      </div>
+
+      <aside class="panel">
+        <div class="control-group">
+          <label for="speedRange">Growth speed <span id="speedLabel" class="control-value"></span></label>
+          <input type="range" id="speedRange" min="0.2" max="3" value="1" step="0.1">
+        </div>
+        <div class="control-group">
+          <label for="branchRange">Branching <span id="branchCountLabel" class="control-value"></span></label>
+          <input type="range" id="branchRange" min="0" max="10" value="5" step="1">
+        </div>
+
+        <div class="buttons">
+          <button id="startBtn" class="btn btn-primary" disabled>Grow</button>
+          <button id="resetBtn" class="btn">Reset</button>
+          <button id="randomBtn" class="btn">Random landmarks</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat-row"><span>Status</span><strong id="statStatus">Waiting for start point</strong></div>
+          <div class="stat-row"><span>Growth steps</span><strong id="statIterations">0</strong></div>
+          <div class="stat-row"><span>Active branches</span><strong id="statActive">0</strong></div>
+          <div class="stat-row"><span>Total tendrils</span><strong id="statBest">&mdash;</strong></div>
+          <div class="stat-row"><span>Routes compared</span><strong id="statRoutes">&mdash;</strong></div>
+          <div class="stat-row"><span>Path length</span><strong id="statOptimal">&mdash;</strong></div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch legend-dot" style="background:#39d15e"></span>Start point</div>
+          <div class="legend-item"><span class="legend-swatch legend-dot" style="background:#e5483e"></span>End point</div>
+          <div class="legend-item"><span class="legend-swatch line-tendril"></span>Growing tendril</div>
+          <div class="legend-item"><span class="legend-swatch line-winner"></span>Winning path</div>
+        </div>
+      </aside>
+
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-mark">EOB<span class="brand-dot">.</span></div>
+    <p>Elements of Biology &mdash; a biomimicry project modeling <em>Physarum polycephalum</em> tendril growth across Mumbai's real street network.</p>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="archive_mumbai_map/roads-data.js?v=1"></script>
+<script src="physarum-solver.js?v=1"></script>
+<script src="app.js?v=18"></script>
+</body>
+</html>

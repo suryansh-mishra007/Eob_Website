@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EOB — Elements of Biology | Slime Mold Pathfinding</title>
+<meta name="description" content="A biomimicry project implementing the actual Tero et al. adaptive-network model of Physarum polycephalum, live in your browser — a maze-solving demo and a freeform network-building demo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%230f9d84'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23f8f5ee' stroke-width='1.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="#top" class="brand">EOB<span class="brand-dot">.</span></a>
+    <nav class="nav">
+      <a href="#science">The Science</a>
+      <a href="#models">Live Models</a>
+      <a href="#how">How It Works</a>
+      <a href="#references">References</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <canvas id="heroCanvas" class="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Elements of Biology &mdash; Biomimicry in Tech</p>
+      <h1>A brainless organism<br>can solve a maze &mdash; and design a network.</h1>
+      <p class="hero-lede">
+        <em>Physarum polycephalum</em>, a single-celled slime mold, is famous for two
+        experiments. Dropped into a maze with food at both ends, it finds the shortest
+        route through, even when several paths exist (Nakagaki, Yamada &amp; T&oacute;th,
+        <em>Nature</em>, 2000). Given food placed at the locations of Tokyo's cities, it
+        grew a network of tubes that closely mirrored the real Tokyo rail system &mdash;
+        without a brain, a map, or any planning at all (Tero et al., <em>Science</em>,
+        2010). Researchers wrote down exactly what rule the organism follows &mdash; a
+        feedback loop between how much a tube carries and how thick it grows &mdash; as a
+        real system of equations (Tero, Kobayashi &amp; Nakagaki, 2007). This project runs
+        <strong>that literal model</strong>, not a stylized animation of it, in two
+        interactive demos below.
+      </p>
+      <a href="#models" class="cta">See it think &darr;</a>
+    </div>
+  </section>
+
+  <section id="science" class="section">
+    <div class="wrap">
+      <h2 class="section-title">The Organism Behind the Idea</h2>
+      <div class="science-grid">
+        <div class="science-text reveal">
+          <p>
+            <em>Physarum polycephalum</em> has no neurons, no central nervous system, and no
+            eyes &mdash; just a single sprawling cell that feeds by extending tube-like veins
+            outward in every direction. When it finds food, it reinforces the tube that led
+            there; tubes that lead nowhere useful are starved and retracted. The result is a
+            constant tug-of-war between <strong>reinforcement</strong> and
+            <strong>decay</strong>.
+          </p>
+          <p>
+            In 2000, researchers let the mold grow through a maze with food at the entrance
+            and exit; of the several possible routes, it reliably thinned down to the
+            shortest one. In 2010, a follow-up team placed oat flakes on a map in the
+            positions of cities around Tokyo, then let the mold grow across it. Within a day,
+            it had pruned itself down to a network strikingly similar to the real Tokyo rail
+            system &mdash; a system engineers spent decades refining. The mold had no way of
+            "knowing" the maze or the map. It simply followed a local rule, over and over,
+            and an efficient global answer fell out of it.
+          </p>
+          <p>
+            That local rule has an actual mathematical form, published in the same research
+            group's earlier paper. Every tube (i,j) has a conductivity D<sub>ij</sub>, and
+            the whole network at any instant obeys Kirchhoff's current law and Poiseuille
+            flow &mdash; exactly like a circuit or a plumbing system:
+          </p>
+          <p style="text-align:center; font-family:'JetBrains Mono', monospace;">
+            Q<sub>ij</sub> = (D<sub>ij</sub> / L<sub>ij</sub>)(p<sub>i</sub> &minus; p<sub>j</sub>)
+          </p>
+          <p>
+            where Q is the flux through a tube, L its length, and p the pressure at each
+            junction, solved so that flow is conserved at every node. Then, every tube adapts
+            to how much flow it's actually carrying:
+          </p>
+          <p style="text-align:center; font-family:'JetBrains Mono', monospace;">
+            dD<sub>ij</sub>/dt = f(|Q<sub>ij</sub>|) &minus; D<sub>ij</sub>
+          </p>
+          <p>
+            f is an increasing, saturating function of flow &mdash; busy tubes get
+            reinforced, idle ones simply decay back toward zero because upkeep isn't free.
+            That's the entire rule. No planning, no comparing routes, no picking a winner
+            &mdash; an answer falls directly out of solving those two equations forward in
+            time. Both live demos below run precisely that: no agents, no branching
+            probabilities, nothing hand-tuned to "look like" growth. Every possible
+            connection starts with equal conductivity, gets solved as a live circuit each
+            instant, and visibly thins to whichever tubes the equations keep reinforcing.
+          </p>
+        </div>
+        <div class="science-card reveal reveal-delay-1">
+          <h3>The feedback loop</h3>
+          <ol>
+            <li><span class="badge">01</span> Every possible connection starts as a tube with equal conductivity &mdash; the whole structure is "alive" at once, like the real organism first covering the whole plate.</li>
+            <li><span class="badge">02</span> At every instant, the network is solved like a circuit (Kirchhoff's current law) to find how much flow passes through every tube.</li>
+            <li><span class="badge">03</span> Each tube's conductivity adapts toward that flow &mdash; busier tubes thicken, idle ones decay.</li>
+            <li><span class="badge">04</span> Repeating that loop is the entire algorithm: the surviving thick tubes, once it settles, are the answer the model predicts.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="models" class="section model-section">
+    <div class="wrap">
+      <h2 class="section-title">Live Models &mdash; Watch the Equations Think</h2>
+      <p class="section-sub">
+        Two demos, one shared solver (<code>physarum-solver.js</code>) underneath &mdash;
+        no map, no road data, just the equations above run over whatever graph each demo
+        builds. <strong>Maze Solver</strong> recreates the original 2000 maze experiment.
+        <strong>Network Builder</strong> recreates the general 2010 result: place your own
+        food sources and watch an efficient network grow to connect them.
+      </p>
+
+      <div class="tab-switch" role="tablist">
+        <button class="tab-btn active" id="tabBtnMaze" role="tab" aria-selected="true" aria-controls="panelMaze">Maze Solver</button>
+        <button class="tab-btn" id="tabBtnNetwork" role="tab" aria-selected="false" aria-controls="panelNetwork">Network Builder</button>
+      </div>
+
+      <div class="tab-panel active" id="panelMaze" role="tabpanel" aria-labelledby="tabBtnMaze">
+        <div class="model-layout">
+          <div class="canvas-wrap">
+            <div class="map-root">
+              <canvas id="mazeCanvas" aria-label="Slime mold maze-solving simulation"></canvas>
+            </div>
+            <p class="canvas-hint" id="mazeHint">Press Grow &mdash; watch it spread out from the start like a real organism, then thin down to the shortest route.</p>
+          </div>
+
+          <aside class="panel">
+            <div class="control-group">
+              <label for="mazeSpeedRange">Simulation speed <span id="mazeSpeedLabel" class="control-value"></span></label>
+              <input type="range" id="mazeSpeedRange" min="1" max="6" value="2" step="1">
+              <p class="control-hint">How fast time moves &mdash; both the initial growth and the later thinning play out faster at higher values.</p>
+            </div>
+            <div class="control-group">
+              <label for="mazeGammaRange">Network selectivity &mdash; &gamma; <span id="mazeGammaLabel" class="control-value"></span></label>
+              <input type="range" id="mazeGammaRange" min="1.0" max="2.4" value="1.8" step="0.1">
+              <p class="control-hint">How ruthlessly it commits: low keeps extra backup routes alive, high thins all the way down to one lean shortest path.</p>
+            </div>
+
+            <div class="buttons">
+              <button id="mazeStartBtn" class="btn btn-primary">Grow</button>
+              <button id="mazeResetBtn" class="btn">Reset</button>
+              <button id="mazeNewBtn" class="btn">New maze</button>
+            </div>
+
+            <div class="stats">
+              <div class="stat-row"><span>Status</span><strong id="mazeStatStatus">Ready</strong></div>
+              <div class="stat-row"><span>Iterations</span><strong id="mazeStatIterations">0</strong></div>
+              <div class="stat-row"><span>Tubes remaining</span><strong id="mazeStatActive">0</strong></div>
+              <div class="stat-row"><span>Total tubes</span><strong id="mazeStatTotal">&mdash;</strong></div>
+              <div class="stat-row"><span>Convergence (&Delta;D)</span><strong id="mazeStatConverge">&mdash;</strong></div>
+              <div class="stat-row"><span>Path length</span><strong id="mazeStatLength">&mdash;</strong></div>
+            </div>
+
+            <div class="legend">
+              <div class="legend-item"><span class="legend-swatch legend-dot" style="background:#e8543d"></span>Food source</div>
+              <div class="legend-item"><span class="legend-swatch legend-dot" style="background:#4c5fd6"></span>Food sink</div>
+              <div class="legend-item"><span class="legend-swatch line-pher"></span>Low-conductivity tube</div>
+              <div class="legend-item"><span class="legend-swatch line-gold"></span>High-conductivity tube</div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panelNetwork" role="tabpanel" aria-labelledby="tabBtnNetwork">
+        <div class="model-layout">
+          <div class="canvas-wrap">
+            <div class="map-root">
+              <canvas id="networkCanvas" aria-label="Slime mold freeform network-building simulation"></canvas>
+            </div>
+            <p class="canvas-hint" id="networkHint">Click the plate to place food sources (like oat flakes) &mdash; the first is the mathematical source, the rest are sinks. Then press Grow.</p>
+          </div>
+
+          <aside class="panel">
+            <div class="control-group">
+              <label for="networkSpeedRange">Simulation speed <span id="networkSpeedLabel" class="control-value"></span></label>
+              <input type="range" id="networkSpeedRange" min="1" max="6" value="2" step="1">
+              <p class="control-hint">How fast time moves &mdash; both the initial growth and the later thinning play out faster at higher values.</p>
+            </div>
+            <div class="control-group">
+              <label for="networkGammaRange">Network selectivity &mdash; &gamma; <span id="networkGammaLabel" class="control-value"></span></label>
+              <input type="range" id="networkGammaRange" min="1.0" max="2.4" value="1.7" step="0.1">
+              <p class="control-hint">How ruthlessly it commits: low keeps extra backup routes alive, high thins down to the leanest possible network.</p>
+            </div>
+
+            <div class="buttons">
+              <button id="networkStartBtn" class="btn btn-primary" disabled>Grow</button>
+              <button id="networkResetBtn" class="btn">Reset</button>
+              <button id="networkClearBtn" class="btn">Clear points</button>
+            </div>
+
+            <div class="stats">
+              <div class="stat-row"><span>Status</span><strong id="networkStatStatus">Place food sources</strong></div>
+              <div class="stat-row"><span>Terminals placed</span><strong id="networkStatTerminals">0</strong></div>
+              <div class="stat-row"><span>Iterations</span><strong id="networkStatIterations">0</strong></div>
+              <div class="stat-row"><span>Tubes remaining</span><strong id="networkStatActive">0</strong></div>
+              <div class="stat-row"><span>Convergence (&Delta;D)</span><strong id="networkStatConverge">&mdash;</strong></div>
+              <div class="stat-row"><span>Network length</span><strong id="networkStatLength">&mdash;</strong></div>
+            </div>
+
+            <div class="legend">
+              <div class="legend-item"><span class="legend-swatch legend-dot" style="background:#e8543d"></span>Source (1st click)</div>
+              <div class="legend-item"><span class="legend-swatch legend-dot" style="background:#4c5fd6"></span>Sinks (later clicks)</div>
+              <div class="legend-item"><span class="legend-swatch line-pher"></span>Low-conductivity tube</div>
+              <div class="legend-item"><span class="legend-swatch line-gold"></span>High-conductivity tube</div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="section">
+    <div class="wrap">
+      <h2 class="section-title">Mapping Biology to This Model</h2>
+      <div class="how-grid">
+        <div class="how-card reveal">
+          <h3>Slime mold</h3>
+          <p>Starts by covering the whole area it has access to with a dense, uniform mesh of protoplasmic tubes.</p>
+          <h3>This model</h3>
+          <p>Every possible connection starts as a tube with equal conductivity D<sub>ij</sub> &mdash; the whole structure is "alive" at once.</p>
+        </div>
+        <div class="how-card reveal reveal-delay-1">
+          <h3>Slime mold</h3>
+          <p>Obeys Poiseuille flow through its tubes &mdash; flux is proportional to conductivity and pressure difference, conserved at every junction.</p>
+          <h3>This model</h3>
+          <p>Solves that exact same circuit &mdash; Kirchhoff's current law over the conductance-weighted graph &mdash; at every instant, via conjugate gradient.</p>
+        </div>
+        <div class="how-card reveal reveal-delay-2">
+          <h3>Slime mold</h3>
+          <p>Reinforces tubes carrying more flow, with diminishing returns; a tube costs upkeep, so idle ones decay.</p>
+          <h3>This model</h3>
+          <p>Runs dD/dt&nbsp;=&nbsp;f(|Q|)&nbsp;&minus;&nbsp;D on every edge every step &mdash; the identical reinforcement/decay rule, not an approximation of it.</p>
+        </div>
+        <div class="how-card reveal reveal-delay-3">
+          <h3>Slime mold</h3>
+          <p>Ends up with only the tubes that were actually carrying flow, everything else physically gone.</p>
+          <h3>This model</h3>
+          <p>Tube width on screen IS conductivity, live &mdash; idle tubes visibly thin to nothing as the same equation that thickens the survivors plays out.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="references" class="section">
+    <div class="wrap">
+      <h2 class="section-title">References</h2>
+      <p class="section-sub">
+        The model implemented on this page &mdash; not a metaphor for it &mdash; comes
+        directly from these papers. The equations in <a href="#science">The Science</a>
+        section above and the code in <code>physarum-solver.js</code> follow them
+        directly; anywhere this site's implementation makes its own parameter choice
+        (initial conductivity, integration step size, the specific decay floor) rather
+        than reproducing a number reported in a paper, that's called out in the code
+        comments rather than presented as the paper's own value.
+      </p>
+      <ol class="reference-list">
+        <li>
+          Tero, A., Kobayashi, R., &amp; Nakagaki, T. (2007). A mathematical model for
+          adaptive transport network in path finding by true slime mold.
+          <em>Journal of Theoretical Biology</em>, 244(4), 553&ndash;564.
+          <a href="https://doi.org/10.1016/j.jtbi.2006.07.015" target="_blank" rel="noopener">doi:10.1016/j.jtbi.2006.07.015</a>
+          &mdash; the source of the core model: Kirchhoff's current law over a
+          conductance-weighted graph, plus the dD/dt&nbsp;=&nbsp;f(|Q|)&nbsp;&minus;&nbsp;D
+          reinforcement/decay rule used by both live models on this page.
+        </li>
+        <li>
+          Tero, A., Takagi, S., Saigusa, T., Ito, K., Bebber, D. P., Fricker, M. D.,
+          Yumiki, K., Kobayashi, R., &amp; Nishiguchi, T. (2010). Rules for biologically
+          inspired adaptive network design. <em>Science</em>, 327(5964), 439&ndash;442.
+          <a href="https://doi.org/10.1126/science.1177894" target="_blank" rel="noopener">doi:10.1126/science.1177894</a>
+          &mdash; the Tokyo rail-network replication, and the source of the
+          single-source/evenly-split-sinks simplification used by the Network Builder demo.
+        </li>
+        <li>
+          Nakagaki, T., Yamada, H., &amp; T&oacute;th, &Aacute;. (2000). Maze-solving by
+          an amoeboid organism. <em>Nature</em>, 407(6803), 470.
+          <a href="https://doi.org/10.1038/35035159" target="_blank" rel="noopener">doi:10.1038/35035159</a>
+          &mdash; the original single-source/single-sink maze experiment the Maze Solver
+          demo directly recreates the mathematics of.
+        </li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-mark">EOB<span class="brand-dot">.</span></div>
+    <p>Elements of Biology &mdash; a biomimicry project implementing the Physarum Solver model of Tero, Kobayashi &amp; Nakagaki (2007) and Tero et al. (2010) &mdash; see <a href="#references">References</a>.</p>
+  </div>
+</footer>
+
+<script src="site.js"></script>
+<script src="physarum-solver.js"></script>
+<script src="growth-fx.js"></script>
+<script src="maze.js"></script>
+<script src="network-builder.js"></script>
+<script src="tabs.js"></script>
+</body>
+</html>

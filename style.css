@@ -1,0 +1,265 @@
+:root {
+  /* Old dark theme, restored from reference screenshots of the pre-pivot
+     tree-growth/tendril site -- near-black chrome, one green (organism/
+     start point/growing tendril) and one amber (stats, winning path)
+     accent, red for the end point. See PROJECT_NOTES.md for how this was
+     reconstructed (no original CSS survived, only screenshots). */
+  --bg: #0a0c0b;
+  --panel: #101614;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --text: #e8e6df;
+  --text-dim: #7c8880;
+
+  --green: #6fe38a;
+  --green-ink: #4cc96c;
+  --red: #e5483e;
+  --amber: #f5a623;
+
+  --map-card-bg: #f6f3ec;
+
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+a { color: var(--green); }
+
+/* Header */
+.site-header {
+  border-bottom: 1px solid var(--panel-border);
+}
+.header-inner {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 16px 24px;
+}
+.brand {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.brand-dot { color: var(--green); }
+.header-tag {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+/* App layout */
+.app-section { padding: 24px; }
+.app-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .app-wrap { grid-template-columns: 1fr; }
+}
+
+.canvas-wrap {
+  background: var(--map-card-bg);
+  border-radius: 16px;
+  padding: 12px;
+}
+.address-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.address-field { position: relative; flex: 1; }
+.address-field input {
+  width: 100%;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  outline: none;
+}
+.address-field input:focus { border-color: var(--green-ink); }
+.suggestions {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 20;
+}
+.suggestions.open { display: block; }
+.suggestion-item, .suggestion-empty {
+  padding: 9px 12px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 1px solid var(--panel-border);
+}
+.suggestion-item:hover { background: rgba(57, 209, 94, 0.08); color: var(--text); }
+.suggestion-item:last-child, .suggestion-empty:last-child { border-bottom: none; }
+
+.map-root {
+  position: relative;
+  width: 100%;
+  height: 620px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+#leafletMap, #mapCanvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+#mapCanvas {
+  pointer-events: none;
+  /* Leaflet's internal panes (tile/overlay/marker) carry their own
+     z-index (up to ~650) inside #leafletMap -- without an explicit
+     z-index here the canvas, despite being later in the DOM, renders
+     underneath them. */
+  z-index: 1000;
+}
+
+.canvas-hint {
+  margin: 10px 4px 2px;
+  color: #4a5650;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+}
+
+/* Sidebar panel */
+.panel {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 20px;
+}
+.control-group { margin-bottom: 20px; }
+.control-group label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.control-value { color: var(--amber); letter-spacing: normal; text-transform: none; }
+input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--green);
+  cursor: pointer;
+  border: none;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--green);
+  cursor: pointer;
+  border: none;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.btn {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.btn:hover { border-color: rgba(255, 255, 255, 0.28); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary {
+  background: var(--green);
+  color: #08120c;
+  border-color: var(--green);
+}
+.btn-primary:hover { background: var(--green-ink); border-color: var(--green-ink); }
+
+.stats {
+  border-top: 1px solid var(--panel-border);
+  padding-top: 14px;
+  margin-bottom: 18px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.stat-row span { color: var(--text-dim); }
+.stat-row strong { color: var(--amber); font-weight: 500; }
+
+.legend {
+  border-top: 1px solid var(--panel-border);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+.legend-swatch { display: inline-block; flex-shrink: 0; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.line-tendril, .line-winner {
+  width: 22px; height: 3px; border-radius: 2px;
+}
+.line-tendril { background: var(--green); }
+.line-winner { background: var(--amber); }
+
+.site-footer {
+  border-top: 1px solid var(--panel-border);
+  padding: 28px 24px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+.footer-mark { font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.footer-mark .brand-dot { color: var(--green); }
