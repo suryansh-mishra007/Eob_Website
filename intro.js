@@ -11,23 +11,38 @@
   chime.preload = 'auto';
   chime.volume = 0.7;
 
+  /* The intro plays automatically on load, with no user gesture yet --
+     browsers block unmuted audio in that case, so this first attempt reliably
+     fails silently every time. chimeNeedsRetry records that so the NEXT
+     real gesture (see unlockAudio below) can actually play it instead of
+     the failure just being swallowed forever, which is what the previous
+     version of this file did (comment promised a retry; no code did it). */
+  let chimeNeedsRetry = false;
   function playChime() {
     try {
       chime.currentTime = 0;
       const p = chime.play();
-      if (p && p.catch) p.catch(() => { /* still locked -- will retry once a real gesture unlocks it */ });
-    } catch (e) {}
+      if (p && p.catch) p.catch(() => { chimeNeedsRetry = true; });
+    } catch (e) { chimeNeedsRetry = true; }
   }
 
   /* Browsers only allow unmuted audio after a genuine user gesture on the
-     page (a click/key/tap -- switching tabs or window focus doesn't count).
-     Priming the element with a muted play+pause on the very first real
-     gesture "unlocks" it, so later replays (via visibilitychange, F11,
-     reload) can play with sound even though they aren't gestures themselves. */
+     page (a click/key/tap -- switching tabs or window focus doesn't count). */
   let audioUnlocked = false;
   function unlockAudio() {
     if (audioUnlocked) return;
     audioUnlocked = true;
+    if (chimeNeedsRetry && !finished) {
+      // This IS the real gesture -- play() directly and synchronously
+      // within it (not deferred inside a promise callback), which is what
+      // strict autoplay policies (Safari especially) actually require.
+      chimeNeedsRetry = false;
+      playChime();
+      return;
+    }
+    // No retry pending -- just prime the element (muted play+pause) so a
+    // LATER programmatic play() (next replay via visibilitychange/F11)
+    // is allowed even without a fresh gesture at that exact moment.
     const wasMuted = chime.muted;
     chime.muted = true;
     const p = chime.play();

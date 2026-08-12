@@ -81,7 +81,7 @@ a { color: var(--green); }
 .address-row {
   display: flex;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 80px; /* extra breathing room above the map so the dropdown reads as clearly separate from it, on top of the z-index fix */
 }
 .address-field { position: relative; flex: 1; }
 .address-field input {
@@ -99,15 +99,31 @@ a { color: var(--green); }
 .suggestions {
   display: none;
   position: absolute;
-  top: calc(100% + 4px);
+  /* Flush against the input, not `calc(100% + 4px)` -- .address-field has
+     no explicit height beyond the input itself (this dropdown is
+     absolutely positioned, so it doesn't expand its parent's box), so a
+     gap here isn't paintable by anything in the input/dropdown's own dark
+     color -- it just exposes .canvas-wrap's lighter card background
+     showing through as a stray seam between the two. Zero gap removes the
+     seam outright rather than trying to paint over it. */
+  top: 100%;
   left: 0;
   right: 0;
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 10px;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
   max-height: 240px;
   overflow-y: auto;
-  z-index: 20;
+  /* Must beat #mapCanvas's z-index:1000 and Leaflet's own internal panes
+     (its control-container sits at 1000 too) -- .address-row and .map-root
+     are siblings with no isolating stacking context between them, and this
+     dropdown (up to 240px tall) genuinely extends down into where the map
+     begins. At the old z-index:20 the map painted on top of it wherever
+     they overlapped -- #mapCanvas's `pointer-events:none` meant clicks
+     still reached the suggestion underneath, so it worked but was
+     invisible, which is worse than not working at all. */
+  z-index: 2000;
 }
 .suggestions.open { display: block; }
 .suggestion-item, .suggestion-empty {
@@ -254,6 +270,62 @@ input[type="range"]::-moz-range-thumb {
 }
 .line-tendril { background: var(--green); }
 .line-winner { background: var(--amber); }
+
+/* About / how-it-works section */
+.about-section { padding: 8px 24px 48px; }
+.about-wrap { max-width: 880px; }
+.about-intro h2 {
+  font-size: 1.7rem;
+  margin: 0 0 14px;
+}
+.about-intro p, .about-closer {
+  color: var(--text-dim);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.about-closer { margin-top: 32px; }
+
+.rule-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 32px 0;
+}
+@media (max-width: 760px) {
+  .rule-grid { grid-template-columns: 1fr; }
+}
+.rule-card {
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 22px;
+}
+.rule-num {
+  display: block;
+  font-family: var(--font-mono);
+  color: var(--green);
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+.rule-card h3 { margin: 0 0 8px; font-size: 1.05rem; }
+.rule-card p { margin: 0; color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; }
+
+.about-highlight {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 28px;
+  align-items: center;
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 28px;
+}
+@media (max-width: 760px) {
+  .about-highlight { grid-template-columns: 1fr; }
+}
+.highlight-text h3 { margin: 0 0 10px; font-size: 1.15rem; }
+.highlight-text p { margin: 0; color: var(--text-dim); font-size: 0.92rem; line-height: 1.65; }
+.highlight-stats { display: flex; flex-direction: column; gap: 4px; }
+.highlight-stats .stat-row { padding: 8px 0; }
 
 .site-footer {
   border-top: 1px solid var(--panel-border);

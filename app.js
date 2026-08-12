@@ -219,7 +219,7 @@
     endSuggestions.classList.remove('open');
     startBtn.textContent = 'Grow';
     startBtn.disabled = true;
-    hint.textContent = 'Search an address, or click the map, to drop a start point.';
+    hint.textContent = '';
     map.setView(MUMBAI_CENTER, MUMBAI_ZOOM, { animate: false });
     updateStats();
     draw();
@@ -246,19 +246,44 @@
   }
   function attachAddressSearch(input, suggestionsEl, onSelect) {
     let debounceTimer = null;
+    let requestId = 0; // bumped on every new search -- lets a stale in-flight fetch recognize it's been superseded and discard its own result instead of overwriting a newer one
     input.addEventListener('input', () => {
       const q = input.value.trim();
       clearTimeout(debounceTimer);
+      requestId++;
       if (q.length < 3) {
         suggestionsEl.innerHTML = '';
         suggestionsEl.classList.remove('open');
         return;
       }
+      const thisRequestId = requestId;
       debounceTimer = setTimeout(async () => {
-        let results = [];
-        try { results = await forwardGeocode(q); } catch { results = []; }
+        // Nominatim can genuinely take a second or two to respond (more
+        // under any rate limiting) -- without this, a slow-but-working
+        // search looks identical to a broken one for that whole stretch.
         suggestionsEl.innerHTML = '';
-        if (!results.length) {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'suggestion-empty';
+        loadingDiv.textContent = 'Searching…';
+        suggestionsEl.appendChild(loadingDiv);
+        suggestionsEl.classList.add('open');
+
+        let results = [];
+        let failed = false;
+        try { results = await forwardGeocode(q); } catch { failed = true; }
+        // A slower-than-usual response (real risk under Nominatim's rate
+        // limiting) can resolve after a newer keystroke's own request --
+        // without this check, applying it anyway could overwrite the
+        // current, correct results with stale ones for an older, shorter
+        // query.
+        if (thisRequestId !== requestId) return;
+        suggestionsEl.innerHTML = '';
+        if (failed) {
+          const div = document.createElement('div');
+          div.className = 'suggestion-empty';
+          div.textContent = 'Search failed — check your connection and try again';
+          suggestionsEl.appendChild(div);
+        } else if (!results.length) {
           const div = document.createElement('div');
           div.className = 'suggestion-empty';
           div.textContent = 'No matches';
@@ -291,13 +316,13 @@
     startLL = { lat: pt.lat, lon: pt.lon };
     start = projectLL(pt.lat, pt.lon);
     draw();
-    if (endLL) beginSetup(); else { hint.textContent = 'Now search or click an end point.'; updateStats(); }
+    if (endLL) beginSetup(); else { hint.textContent = 'Now pick an end point the same way.'; updateStats(); }
   }
   function setEnd(pt) {
     endLL = { lat: pt.lat, lon: pt.lon };
     end = projectLL(pt.lat, pt.lon);
     draw();
-    if (startLL) beginSetup(); else { hint.textContent = 'Now search or click a start point.'; updateStats(); }
+    if (startLL) beginSetup(); else { hint.textContent = 'Now pick a start point the same way.'; updateStats(); }
   }
   canvas.addEventListener('click', async (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -328,7 +353,7 @@
     startBtn.disabled = true;
     if (!isWithinCoverage(startLL.lat, startLL.lon) || !isWithinCoverage(endLL.lat, endLL.lon)) {
       phase = 'error';
-      hint.textContent = 'That\'s outside the covered area (South Mumbai through Bandra, Andheri, Powai, Ghatkopar & Chembur) — try Reset and pick points within it, or use Random landmarks.';
+      hint.textContent = 'That\'s outside the area we have road data for — South Mumbai through Bandra, Andheri, Powai, Ghatkopar and Chembur. Hit Reset and try a point in that range, or just use Random landmarks.';
       updateStats(); draw();
       return;
     }
@@ -379,7 +404,7 @@
     } catch (err) {
       console.error('Road setup failed:', err);
       phase = 'error';
-      hint.textContent = 'Could not build a route between those points — try Reset and different points.';
+      hint.textContent = 'Couldn\'t find a road connection between those two points — hit Reset and try a different pair.';
       updateStats(); draw();
     }
   }
@@ -424,7 +449,7 @@
     phase = 'growing';
     startBtn.textContent = 'Pause';
     startBtn.disabled = false;
-    hint.textContent = `Growing outward from the start across ${edges.length.toLocaleString()} road segments — branching, wandering, and gradually spreading toward the other point…`;
+    hint.textContent = `It's spreading out from the start across ${edges.length.toLocaleString()} road segments — branching, wandering, edging toward the other point…`;
   }
 
   function dirToEnd(node) {
@@ -703,7 +728,7 @@
 
     phase = 'pruning';
     pruneT = 0;
-    hint.textContent = 'The verified shortest route solidifies while every other tendril retracts back into the host.';
+    hint.textContent = 'The fastest route is locking in now, while every other tendril shrinks back into the source.';
   }
 
   function advance(dtSeconds) {
@@ -738,7 +763,7 @@
       if (pruneT >= 1) {
         phase = 'done';
         running = false;
-        hint.textContent = 'Connected — this is the verified shortest route on the real road network (exact, not a guess).';
+        hint.textContent = 'Connected — that really is the shortest route on the actual road network, not an approximation.';
       }
     }
   }
