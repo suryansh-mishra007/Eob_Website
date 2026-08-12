@@ -32,23 +32,39 @@
   function unlockAudio() {
     if (audioUnlocked) return;
     audioUnlocked = true;
-    if (chimeNeedsRetry && !finished) {
-      // This IS the real gesture -- play() directly and synchronously
-      // within it (not deferred inside a promise callback), which is what
-      // strict autoplay policies (Safari especially) actually require.
-      chimeNeedsRetry = false;
-      playChime();
-      return;
-    }
-    // No retry pending -- just prime the element (muted play+pause) so a
-    // LATER programmatic play() (next replay via visibilitychange/F11)
-    // is allowed even without a fresh gesture at that exact moment.
-    const wasMuted = chime.muted;
-    chime.muted = true;
-    const p = chime.play();
-    const reset = () => { chime.pause(); chime.currentTime = 0; chime.muted = wasMuted; };
-    if (p && p.then) p.then(reset).catch(reset);
-    else reset();
+    // This listener is on `document` with capture:true so it catches a
+    // gesture anywhere on the page -- which means for a click on the skip
+    // button or the overlay itself, THIS runs before that element's own
+    // (bubble-phase) click handler, i.e. before finish() has set `finished`
+    // yet, even though they're the same click. Checking `finished`
+    // synchronously here couldn't tell "the user is skipping right now"
+    // apart from "the user is genuinely still watching" -- retrying the
+    // chime either way meant a skip-click made it start playing audibly
+    // right as the visual faded out, i.e. the "audio after the video
+    // finishes" bug. Deferring one tick lets finish() (if this same click
+    // triggers it) run first, so the check below sees the real state.
+    setTimeout(() => {
+      if (chimeNeedsRetry && !finished) {
+        chimeNeedsRetry = false;
+        playChime();
+        return;
+      }
+      // Already mid-playback (autoplay wasn't actually blocked this time,
+      // or it already retried) -- leave it alone, priming would pause and
+      // reset audio that's legitimately still going.
+      if (!chime.paused) return;
+      // No retry needed (either it already played, or the intro's already
+      // done and playing it now would be exactly the out-of-sync bug this
+      // is fixing) -- just prime the element (muted play+pause) so a LATER
+      // programmatic play() (next replay via visibilitychange/F11) is
+      // allowed even without a fresh gesture at that exact moment.
+      const wasMuted = chime.muted;
+      chime.muted = true;
+      const p = chime.play();
+      const reset = () => { chime.pause(); chime.currentTime = 0; chime.muted = wasMuted; };
+      if (p && p.then) p.then(reset).catch(reset);
+      else reset();
+    }, 0);
   }
   ['click', 'keydown', 'touchstart', 'pointerdown'].forEach((evt) => {
     document.addEventListener(evt, unlockAudio, { once: true, capture: true });
