@@ -1,6 +1,81 @@
-# EOB (Elements of Biology) — Project Notes / Recovery Doc
+# Slime Mold Algorithm — Project Notes / Recovery Doc
 
-Last updated: 2026-08-08
+Last updated: 2026-08-16
+
+## 2026-08-16 — Added top-level tabs: Model / Presentation / Team
+
+Per direct request ("sir liked it but we gotta add our pictures and info
+about the project and our ppt inside the website, make multiple tabs 1 for
+model, 1 for ppt and 1 for about the team section"). The single-page site
+(Model demo + About section) is now wrapped as the **Model** tab, with two
+new tabs added alongside it. **Not committed/pushed** — sitting as local
+uncommitted changes per the standing workflow (see below), waiting for the
+user to review at `localhost:8765` and say go.
+
+**New tab shell**: `.top-tabs` button row added to `.site-header` (the site
+previously had zero nav — this is the first real navigation it's had since
+the THIRD PIVOT). Existing `app-section`+`about-section` wrapped in
+`#panelModel`; two new sibling `.tab-panel` divs (`#panelPresentation`,
+`#panelTeam`), toggled by new `site-tabs.js` (`.hidden` class, `display:
+none`) — modeled on the archived `archive_tabs_maze_network/tabs.js`'s
+"don't pause the hidden tab's own script" philosophy, though this version
+has no per-tab simulation to keep alive on the two new tabs, so it's
+simpler (no `ResizeObserver` handling needed).
+
+**Presentation tab**: renders the team's real slide deck
+(`D:\Slime_Mould_Deck copy - full algorithm comparison.pptx`, 41 slides) as
+a 40-slide image viewer (`presentation.js` + `images/slides/slide-02.jpg`
+… `slide-41.jpg`, 1280×720 each, ~6MB total). Slide 1 (a video-intro
+placeholder slide with no static content) is excluded — see "How the
+slides were rendered" below for why. Prev/next buttons, left/right arrow
+keys (ignored while an `<input>`/`<textarea>` has focus, and while this tab
+isn't visible), a clickable horizontal thumbnail strip, and a "Download the
+full deck (.pptx)" link to `downloads/Slime-Mould-Optimization.pptx` (a
+copy of the original file, ~5MB). Numbering: internally 0-indexed
+(`current`), mapped to real slide numbers via `FIRST_SLIDE_NUM = 2`.
+
+**How the slides were rendered to images (useful if this ever needs
+re-running for an updated deck)**: this machine has **no LibreOffice**
+installed, and the `pptx` skill's `soffice.py` wrapper doesn't work on
+Windows anyway (`AttributeError: module 'socket' has no attribute
+'AF_UNIX'` — that wrapper assumes a Unix socket shim). **What worked**:
+Microsoft 365 (PowerPoint) *is* installed, but the obvious COM approach —
+`Presentation.Slides.Item(i).Export(path, "JPG", w, h)`, even with
+`Application.Visible = true` — produced garbage (a black rectangle top-left
+on flat gray, every single slide) **in this sandboxed/no-real-display
+environment**, regardless of visibility. **What actually rendered
+correctly**: `Presentation.SaveAs(folderPath, 17)` (`ppSaveAsJPG = 17`),
+which exports every slide as `Slide1.JPG`, `Slide2.JPG`, … in one call via
+a different internal PowerPoint code path than `Slide.Export`. Verified
+directly by opening several output images (not just checking file sizes) —
+real photos, real text, correct layout, matching the deck's own dark/
+lime-green/orange theme. If `Slide.Export` is ever tried again on this
+machine, don't trust file size alone as a correctness signal — the broken
+black/gray output was still a plausible-looking non-zero JPG.
+
+**Team tab**: 4 cards (name + roll number: Vinayak Mangal C-304, Suryansh
+Mishra C-315, Krishna Mistry C-318, Soha Nanal C-326 — sourced from the
+deck's own title/closing slides, not invented), each with a colored
+initials-circle placeholder avatar (no bios/roles shown — none were
+supplied, and none were invented). **Real team photos are still
+outstanding**: the user pasted two photos of the team in front of a
+presentation screen directly into chat, but this environment has no
+filesystem access to inline-pasted/vision-only image attachments — Read/
+Glob/Bash all confirmed nothing was written to disk from them (checked
+`scratchpad`, `Downloads`, `Desktop`, `Pictures`, and a broad recent-file
+sweep of the user profile — see below). A placeholder block
+(`#teamPhotoSlot`, dashed border, "ask Claude to add them") sits below the
+card grid as a visible reminder. **If a future session is asked to finish
+this**: ask the user for an actual file path (or have them drop the
+photo(s) directly into `EOB_Website/images/team/`), don't assume a repeat
+of the same paste-into-chat approach will work.
+
+**Workflow note, followed this round**: per the standing instruction
+higher up in this file, nothing was committed or pushed — this is sitting
+as an uncommitted local change (`git status` will show `index.html`,
+`style.css` modified; `site-tabs.js`, `presentation.js`, `images/`,
+`downloads/` untracked) until the user reviews and explicitly says to
+commit.
 
 This file exists so that if this conversation/session is ever lost, a fresh
 Claude Code session (or a human) can read this and understand exactly what
@@ -10,6 +85,335 @@ files is:
 ```
 C:\Users\gangs\OneDrive\Pictures\Documents\EOB_Website
 ```
+
+**Site is renamed.** It was called "EOB" / "Elements of Biology" (the school
+subject this was made for) through 2026-08-08. As of 2026-08-12 every
+user-visible "EOB"/"Elements of Biology" string is gone, replaced with
+"Slime Mold Algorithm" (title, header brand, footer, intro wordmark). If you
+find "EOB" anywhere in the live site again, that's a regression, not a
+leftover to leave alone.
+
+**Site is live**, hosted on Vercel, deployed from a GitHub repo:
+- Live URL: `https://eob-website.vercel.app/` (URL itself still says "eob" —
+  that's just the Vercel project's slug from before the rename, cosmetic,
+  not worth the churn of renaming the project to fix).
+- GitHub repo: `https://github.com/suryansh-mishra007/Eob_Website` (`main`
+  branch, that's the only branch).
+- Local folder above is a real git repo now (`git init` was run 2026-08-11),
+  with `origin` pointing at that GitHub repo. Deploys are git-triggered:
+  Vercel is connected to the repo, so `git push` to `main` auto-redeploys in
+  well under a minute. `vercel.json` (`buildCommand`/`installCommand: ""`,
+  `outputDirectory: "."`) tells Vercel this is a zero-build static site —
+  don't remove it or Vercel may try to detect a framework and get it wrong.
+- **Workflow going forward, per explicit user instruction**: make edits
+  locally, let the user review/test at `http://localhost:8765` first
+  (`.claude/launch.json` in this folder has that preview config already),
+  and only `git add`/`commit`/`push` when the user explicitly says to commit
+  — don't push proactively just because a fix looks done.
+- One real incident: mid-session the live URL started 404ing with
+  `X-Vercel-Error: DEPLOYMENT_NOT_FOUND` — the production deployment pointer
+  broke on Vercel's side for no code-related reason (confirmed: no new
+  commits existed at the time). It self-resolved the moment a new commit was
+  pushed and Vercel cut a fresh deployment. If this happens again, a push is
+  the first thing to try before assuming a real bug.
+- Git identity for commits in this repo: `suryansh-mishra007` /
+  `mishrasuryansh690@gmail.com` (set locally via `git config user.name`/
+  `user.email` in this folder, not global — Claude is not able to run
+  `git config` itself per its own safety rules, so if this ever needs
+  resetting on a fresh machine, the human has to run those two commands,
+  not the assistant).
+
+## 2026-08-11/12 — THIRD PIVOT (never documented until now): back to the Mumbai point-to-point map
+
+**This above all: the "SECOND PIVOT" entry below, and everything under it
+about `maze.js`/`network-builder.js`/tabs/Maze Solver/Network Builder, is
+now history too.** Sometime around 2026-08-09 (before this note was ever
+written — discovered mid-session by noticing `archive_tabs_maze_network/`
+existed with an Aug-9 timestamp, one day *after* this doc's previous
+"current state," and reading actual file contents rather than trusting this
+doc) the site was reverted a third time, back to the **original Mumbai
+point-to-point address-to-address map** — the very first version, from
+before the "SECOND PIVOT" entry below ever happened. Nobody had updated this
+file when that happened, which is exactly the kind of drift this file exists
+to prevent — if you're reading this file to understand "current state,"
+always spot-check it against what's actually in `index.html`/`app.js`
+before trusting it, the same way this correction was found.
+
+**Current live site**: single page, no tabs. Search-by-address (Nominatim
+geocoding) or click-the-map to drop a start and end point on real Mumbai
+streets, then watch a tendril-growth heuristic find a route between them.
+- `app.js` — the whole point-to-point mechanic, extensively rewritten this
+  session (see below). Original comment block at the top of the file still
+  says "reconstructed from PROJECT_NOTES.md's description... no source code
+  survived" — that's accurate history (the pre-pivot version's source was
+  lost, this is a rebuild from screenshots/memory, explicitly a hand-built
+  heuristic, NOT the real Tero/Nakagaki PhysarumSolver equations).
+- `physarum-solver.js` — unchanged, still only used for its graph-loading/
+  cropping helper functions (`buildFullGraph`, `nearestNode`,
+  `connectedComponentMasked`, `subgraphFromMask`, `haversineMeters`), not
+  for `PhysarumSolver` itself.
+- `archive_mumbai_map/` — the OLD point-to-point implementation from the
+  very first pivot era (superseded by the current `app.js`, kept for
+  reference/rollback, not wired into `index.html`).
+- `archive_tabs_maze_network/` — the SECOND pivot's Maze Solver / Network
+  Builder tabs implementation (`maze.js`, `network-builder.js`, `tabs.js`,
+  `growth-fx.js`, its own `index.html`/`style.css`). Also not wired in.
+  If a future session is asked to revive either archived version, both
+  folders are complete/self-contained, just missing from the live
+  `index.html`'s script tags and needing Leaflet re-added if it's the maze
+  version (current `index.html` already has Leaflet for the map version).
+
+## 2026-08-11/12 — This session's rebuild of the tendril-growth mechanic (many rounds)
+
+Several back-to-back rounds fixing real bugs and re-tuning the heuristic in
+`app.js`. Condensed by topic rather than blow-by-blow; see git log
+(`a9b5696`, `e361602`, `65d4deb`, `ba7566d` at time of writing) for exact
+diffs.
+
+**Color**: site-wide green (`--green`/`--green-ink` in `style.css`, plus the
+canvas's tendril/start-point colors in `app.js`) changed from the old
+saturated `#39d15e` to a lighter `#6fe38a`/`#4cc96c` pair, per direct
+request ("make the green light green").
+
+**Retraction animation — two real bugs found and fixed**:
+1. Root/tip/depth metadata for each grown edge (`edgeFromNode`/
+   `edgeToNode`/`edgeDepth`, used to animate losing tendrils visibly
+   shrinking back toward the source rather than just fading in place) was
+   being **overwritten on every crossing**, not just the first. Since a
+   staggered retraction wave depends on that depth value staying accurate,
+   this scrambled the ordering and made losing tendrils look like they were
+   randomly fading rather than sweeping back to the host in order. Fixed by
+   making `markEdgeGrown()` write those three fields once only
+   (`if (edgeGrownBy[e] !== -1) return;` guard) — same write-once pattern
+   `edgeGrownBy` itself already used.
+2. Retraction pacing (`PRUNE_SECONDS`, `RETRACT_WINDOW_FRAC`) was tuned up
+   over several rounds (2.4s → all the way through several intermediate
+   values) as part of the broader "make it slower, let people actually see
+   it" ask below — see current constants in `app.js` for the settled values.
+
+**Growth speed — one real, dumb bug**: the step-accumulator math added a
+fixed amount **once per rendered frame** instead of scaling by real elapsed
+time. At ~60fps that meant growth actually ran roughly **60x faster** than
+its own `STEPS_PER_SECOND` constant claimed — the literal reason growth used
+to look instant/frantic no matter what the "speed" slider said. Fixed by
+scaling by `dtSeconds` in `advance()`. Comment in `app.js` right above that
+line documents this so nobody reintroduces it.
+
+**Performance — dead tendrils accumulating forever**: `tips` (the array of
+growth agents) only ever grew, never shrank, even for tendrils that died
+minutes of simulated time ago — every step re-scanned all of them. Fixed
+with periodic compaction (`tips = tips.filter(t => t.alive)` every
+`TIP_COMPACT_INTERVAL` steps) plus an incrementally-maintained
+`aliveTipCount` instead of re-deriving it via `.filter().length` on every
+branch-cap check. Also: per-tip `path` arrays (copied on every single-hop
+move AND on every branch, `O(path length)` each time) were removed entirely
+— the winning route is always recomputed fresh via exact Dijkstra anyway
+(see below), so no tip ever actually needed to carry its own path history.
+
+**"Does the growth actually reach the goal, spread out, and look alive" —
+went through several designs before landing on the current one**:
+- Round 1: raised `GOAL_BIAS`, `MAX_ACTIVE_TIPS`, branch chance. Still
+  clustered near the source on routes running along one arterial road with
+  few real side-junctions (branching can only happen where a real
+  alternative road exists — no amount of tuning "branch chance" fixes a
+  corridor that structurally doesn't have one).
+- Round 2: tried spawning K=5 deterministic "guide routes" (real Dijkstra +
+  edge-penalty-based diverse alternates, see git history for
+  `computeDiverseRoutes`/`GUIDE_ROUTE_COUNT` if ever wanted again) racing to
+  the goal, with organic branching as pure background texture. Worked, but
+  didn't match reference recordings of the pre-pivot original (screen
+  recordings the user supplied showed 20-40+ tendrils organically reaching
+  the goal over a long, patient run, not a small fixed number racing).
+- **Current/final design**: no deterministic guide routes. `GOAL_BIAS`
+  raised substantially (to 3.5) so the organic random walk itself reliably
+  reaches the goal repeatedly on its own, combined with letting growth run
+  until `ROUTES_FOUND_TARGET` (25) tendrils have independently reached the
+  goal — NOT a fixed time window — so the mesh has time to actually spread
+  across the whole corridor instead of stalling near the source.
+  `MAX_GROWTH_STEPS` is purely a safety ceiling. Branching at junctions
+  rolls **independently per spare direction** (not one shared coin-flip per
+  junction visit) so a real multi-way junction fans out properly. A single
+  reactive "homing" tip (Dijkstra-guided, hop-compressed to always finish
+  within budget) is the only guaranteed element, spawned only if the
+  organic walk is genuinely failing to reach the goal at all — a safety net
+  for a pathologically narrow corridor, not the normal path. `CROP_PAD_*`
+  constants were also widened (0.55/0.16 → 1.1/0.32) so the cropped
+  subgraph itself has real lateral street width to grow into, not just the
+  direct line between the two points.
+
+**Correctness — the winning route is always exact, not heuristic-chosen**:
+`beginPrune()` always calls a real Dijkstra shortest-path search
+(`dijkstraShortestPath()`, exact segment lengths) for the solidifying
+route, regardless of what the random tendrils/homing tip happened to find.
+The growth animation is explicitly cosmetic; the answer shown is provably
+correct if anyone cross-checks it against a real routing engine. Top-of-file
+comment in `app.js` documents this split (visual heuristic vs. authoritative
+answer) — don't blur it if asked to touch the growth mechanic again.
+
+**If touching the growth mechanic again**: read the top-of-file comment
+block in `app.js` first, it's kept up to date with the current
+constants/mechanic (unlike this doc, which only gets updated when
+explicitly asked). Constants worth knowing the *names* of even if not the
+current values: `GOAL_BIAS`, `BRANCH_CHANCE_MAX`, `MAX_ACTIVE_TIPS`,
+`ROUTES_FOUND_TARGET`, `MAX_GROWTH_STEPS`, `STEPS_PER_SECOND`,
+`HOMING_TRIGGER_FRACTION`, `PRUNE_SECONDS`, `RETRACT_WINDOW_FRAC`,
+`CROP_PAD_KM_MIN`/`CROP_PAD_FRACTION`.
+
+## 2026-08-12 — Real bugs found in the address search bar (not the growth mechanic)
+
+User reported the search dropdown "isn't working" / "people can't see it and
+choose an address." Investigated properly in devtools (per explicit
+instruction not to guess blindly) before touching CSS — two real,
+independent bugs, neither was a Leaflet control or map-canvas content
+issue as first suspected:
+
+1. **Z-index stacking**: `.suggestions` had `z-index: 20` while `#mapCanvas`
+   has `z-index: 1000` (Leaflet's own internal panes go up to `1000` too,
+   confirmed by walking every element under `#leafletMap`). `.address-row`
+   and `.map-root` are siblings with nothing isolating their stacking, and
+   the dropdown (up to 240px tall) genuinely extends down into where the
+   map begins — so the map was painting on top of the dropdown wherever
+   they overlapped. It was still technically clickable underneath
+   (`#mapCanvas` has `pointer-events: none`), which is exactly why this was
+   an *invisible* bug rather than an obviously-broken one — clicking blindly
+   in the right spot would have worked. Fixed: `.suggestions` raised to
+   `z-index: 2000`. Verified by temporarily forcing `pointer-events: auto`
+   on the canvas to get a true (not hit-test-skipped) stacking comparison.
+2. **Seam/gap**: `.suggestions` sat at `top: calc(100% + 4px)`, a deliberate
+   4px gap below the input — but `.address-field` (the shared wrapper) has
+   no explicit height beyond the input itself, since the dropdown is
+   `position: absolute` and doesn't expand its parent's box. Nothing in the
+   input/dropdown's own dark color could ever paint that 4px strip, so it
+   exposed `.canvas-wrap`'s lighter card background bleeding through as a
+   stray seam. Fixed: gap removed entirely (`top: 100%`, flush against the
+   input), doubled border removed, corner rounding adjusted so it reads as
+   one continuous surface.
+3. Also added, per follow-up request, extra breathing room between the
+   search row and the map itself (`.address-row`'s `margin-bottom`: 10px →
+   80px) — separate from the z-index/seam fixes, purely visual spacing.
+
+**Also found and fixed while investigating** (not what was reported, found
+by testing thoroughly rather than assuming the report was the whole story):
+- A real race condition in `attachAddressSearch()` (`app.js`): if a Nominatim
+  response was slow (confirmed directly — it can genuinely take 1-2+
+  seconds) and the user kept typing, an older request could resolve *after*
+  a newer one and silently overwrite the current, correct results with
+  stale ones. Fixed with a `requestId` sequence guard — a resolved fetch
+  checks it's still the latest before touching the DOM.
+- No loading feedback at all while a request was in flight — a
+  slow-but-working search looked identical to a broken one for that whole
+  stretch. Added a "Searching…" state shown immediately when the debounce
+  fires.
+- A failed fetch (network error, Nominatim rate-limiting) was silently
+  shown as "No matches" — indistinguishable from a real empty result. Now
+  shows "Search failed — check your connection and try again" instead.
+
+**Nominatim reliability note for future sessions**: this site calls
+`nominatim.openstreetmap.org` directly from client-side JS, with no backend
+proxy. Nominatim's usage policy is strict about volume from a single
+origin/IP, and heavy testing (by an assistant or a user) against the same
+domain in one session can plausibly cause real, temporary slowdowns or rate
+limiting that look like "the search is broken" but aren't a code bug. If a
+report can't be reproduced after real devtools investigation, this is a
+likely explanation — don't assume the code must be broken just because a
+user says search "isn't working."
+
+## 2026-08-12 — Netflix-style intro sequence added, adapted from Slime-Mould-Deck
+
+Per explicit request ("add this as intro we made it together... you can
+copy code from there"), the intro sequence from
+`C:\Users\gangs\OneDrive\Pictures\Documents\ppt\Slime-Mould-Deck\index.html`
+(a separate, unrelated project — a slide deck about the Slime Mould
+Algorithm) was ported over: veins grow in via SVG path animation, a core
+flash pops, a wordmark reveals, all CSS-keyframe-driven (**not** a literal
+`<video>` embed, despite files named `Slime_Mould_Netflix_Intro.mp4`
+floating around in the *other* project — those are recordings/exports of
+the CSS animation for other uses, not something this site plays directly).
+
+New files: `intro.js` (self-contained, no dependency on
+Leaflet/PhysarumGraph/app.js, safe to load before them), plus intro CSS
+appended to the end of `style.css`, plus `assets/intro-chime.mp3` (copied
+from the deck's own `assets/` folder) and markup at the very top of
+`<body>` in `index.html`. Recolored to this site's own green/amber palette
+(`--green`/`--green-ink` instead of the deck's `--acid`/`--moss`) and using
+the site's existing fonts (Space Grotesk/JetBrains Mono) instead of pulling
+in the deck's serif display font. Wordmark reads "SLIME MOLD ALGORITHM" /
+"GROWING ROUTES ACROSS REAL STREETS" — was briefly "ELEMENTS OF BIOLOGY"
+during the rebrand, corrected per explicit follow-up ("keep slime mold
+algorithm" — the algorithm's the point, not the "biology" framing).
+
+**Real robustness bug found and fixed vs. the source deck's own version**:
+in the deck's original, the click/keydown "skip" listeners were only
+attached *after* the animation actually started — which meant if
+`document.visibilityState` never resolved to `'visible'` (background tabs,
+some automation contexts, in principle any browser edge case), the overlay
+could show a plain black screen with genuinely no way to dismiss it. Fixed
+here by wiring the skip controls (overlay click, keydown, the dedicated
+`#introSkip` button — which the source deck's CSS defined but never
+actually rendered an element for) immediately and unconditionally, so the
+overlay is always dismissible from the instant it appears regardless of
+whether the animation itself ever gets to play.
+
+**Two real audio bugs, both found by testing rather than assumed**:
+1. The chime never played at all. Root cause: the intro auto-plays on page
+   load with no user gesture yet, so the browser's autoplay policy blocks
+   the first `chime.play()` attempt every time (this is guaranteed, not
+   occasional) — and the code's own comment claimed "will retry once a real
+   gesture unlocks it" but no code actually did that. Fixed with a real
+   `chimeNeedsRetry` flag, consumed on the user's first real gesture.
+2. Once (1) was fixed, a *second*, subtler bug surfaced: the gesture-unlock
+   listener is on `document` with `capture: true` (needed to catch a
+   gesture anywhere on the page), which means for a click on the skip
+   button specifically, it fires *before* that button's own bubble-phase
+   `finish()` handler — even though it's the same click. So clicking skip
+   as your very first interaction would start the chime retrying right as
+   the intro faded out, meaning it finished playing audibly *after* the
+   visual was already gone — reported directly as "the audio and intro
+   video aren't in sync... audio plays after the video finishes." Fixed by
+   deferring the retry decision one tick (`setTimeout(fn, 0)`) so it
+   correctly sees whether `finished` got set by that same click before
+   deciding whether to play. Also guarded the "prime" (muted play/pause)
+   path against interrupting an already-legitimately-playing chime.
+   Verified directly both ways: forced a simulated blocked-autoplay state,
+   confirmed a skip-click as the first gesture leaves the chime silent
+   (correct — no more late/out-of-sync playback), and confirmed a normal
+   non-skip gesture while the intro is still showing still plays it fine.
+
+**If touching the intro again**: the automation environment used for
+testing this site (Claude Code's browser tool) reports
+`document.visibilityState === 'hidden'` for backgrounded tabs and doesn't
+enforce browser autoplay-blocking the way a real browser does — meaning
+`chime.play()` can succeed immediately in that harness even with no
+gesture, which is *not* representative of real user conditions. Don't trust
+"it played" in that harness as proof the retry logic works; verify the
+actual state machine (`chimeNeedsRetry`/`finished`/`audioUnlocked`) via a
+temporary debug hook instead, the way this round did, and remove the hook
+before finishing.
+
+## 2026-08-12 — Rebrand, new content section, humanized copy
+
+- Removed "EOB"/"Elements of Biology" from every user-visible string (page
+  title, header brand, footer, intro wordmark) — see top of this file for
+  the full rebrand note.
+- Added a new "How it works" section to `index.html` (between the live demo
+  and the footer, `.about-section` in `style.css`) covering what
+  *Physarum polycephalum* actually is, the three behavioral rules the
+  growth heuristic mimics, and the 2010 Tokyo rail experiment with real
+  comparison numbers (1.75x vs 1.80x cost, 0.85 efficiency both ways).
+  Written fresh for this site, not copied verbatim from the reference
+  slide deck (`Slime_Mould_Deck copy.pptx` in Downloads) — that deck was
+  used for facts/reference only, and slide 39 specifically was excluded
+  per explicit instruction.
+- Removed the idle placeholder text under the map ("Search an address, or
+  click the map, to drop a start point.") entirely — that element
+  (`#canvasHint`) still lights up with real status during growth/pruning/
+  errors (that's `app.js` writing to it live), it just stays blank at idle
+  now instead of showing static instructional copy.
+- Passed over the `app.js` status/error strings (the "Growing outward...",
+  "Connected — this is the verified shortest route...", coverage-error, and
+  no-route-found messages) to sound more like a person wrote them and less
+  like a spec sheet — see current strings in `app.js` for the actual
+  wording, this doc won't try to keep a duplicate copy in sync.
 
 ## 2026-08-08 (latest) — two-stage growth: slowed way down, added the undifferentiated-sheet stage
 

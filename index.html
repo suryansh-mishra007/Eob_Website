@@ -36,9 +36,15 @@
     <a href="#top" class="brand">Slime Mold Algorithm<span class="brand-dot">.</span></a>
     <p class="header-tag">Growing routes across real Mumbai streets, live</p>
   </div>
+  <div class="wrap top-tabs" role="tablist" aria-label="Site sections">
+    <button class="tab-btn active" id="tabBtnModel" role="tab" aria-selected="true" aria-controls="panelModel">Model</button>
+    <button class="tab-btn" id="tabBtnPresentation" role="tab" aria-selected="false" aria-controls="panelPresentation">Presentation</button>
+    <button class="tab-btn" id="tabBtnTeam" role="tab" aria-selected="false" aria-controls="panelTeam">Team</button>
+  </div>
 </header>
 
 <main id="top">
+  <div class="tab-panel" id="panelModel" role="tabpanel" aria-labelledby="tabBtnModel">
   <section class="app-section">
     <div class="app-wrap">
 
@@ -136,6 +142,67 @@
       <p class="about-closer">What you're driving above is the same idea, simplified: tendrils grow across Mumbai's real road network with a bias toward your destination, branch and explore along the way, and whatever never carries real "traffic" gets pruned back &mdash; leaving the winning route standing.</p>
     </div>
   </section>
+  </div>
+
+  <div class="tab-panel hidden" id="panelPresentation" role="tabpanel" aria-labelledby="tabBtnPresentation">
+  <section class="presentation-section">
+    <div class="wrap presentation-wrap">
+      <div class="presentation-header">
+        <h2>The Presentation</h2>
+        <a class="btn" id="deckDownload" href="downloads/Slime-Mould-Optimization.pptx" download>Download the full deck (.pptx)</a>
+      </div>
+
+      <div class="slide-viewer">
+        <button class="slide-nav slide-prev" id="slidePrev" aria-label="Previous slide">&#8249;</button>
+        <div class="slide-frame">
+          <img id="slideImage" src="images/slides/slide-02.jpg" alt="Presentation slide">
+        </div>
+        <button class="slide-nav slide-next" id="slideNext" aria-label="Next slide">&#8250;</button>
+      </div>
+      <div class="slide-counter"><span id="slideCounter">1 / 40</span></div>
+
+      <div class="slide-thumbs" id="slideThumbs"></div>
+    </div>
+  </section>
+  </div>
+
+  <div class="tab-panel hidden" id="panelTeam" role="tabpanel" aria-labelledby="tabBtnTeam">
+  <section class="team-section">
+    <div class="wrap team-wrap">
+      <h2>The Team</h2>
+      <p class="team-sub">Four first-year students who took a "brainless" organism seriously enough to build a working model of it.</p>
+
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar" style="background:#6fe38a">VM</div>
+          <h3>Vinayak Mangal</h3>
+          <p>C-304</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:#f5a623">SM</div>
+          <h3>Suryansh Mishra</h3>
+          <p>C-315</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:#e5483e">KM</div>
+          <h3>Krishna Mistry</h3>
+          <p>C-318</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:#4cc96c">SN</div>
+          <h3>Soha Nanal</h3>
+          <p>C-326</p>
+        </div>
+      </div>
+
+      <div class="team-gallery" id="teamPhotoSlot">
+        <img src="images/team/team-group.jpg" alt="The team presenting Slime Mould Optimization">
+        <img src="images/team/team-presenting-1.jpg" alt="The team demoing the live model">
+        <img src="images/team/team-presenting-2.jpg" alt="The team demoing the live model, routing Ghatkopar to Vile Parle">
+      </div>
+    </div>
+  </section>
+  </div>
 </main>
 
 <footer class="site-footer">
@@ -150,5 +217,7 @@
 <script src="archive_mumbai_map/roads-data.js?v=1"></script>
 <script src="physarum-solver.js?v=1"></script>
 <script src="app.js?v=21"></script>
+<script src="site-tabs.js?v=1"></script>
+<script src="presentation.js?v=1"></script>
 </body>
 </html>
