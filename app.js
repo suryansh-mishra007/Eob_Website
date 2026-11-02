@@ -127,10 +127,18 @@
     tap: false,
     attributionControl: true,
   });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd',
-    maxZoom: 20,
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
+  // Esri Light Gray Canvas (no API key). CARTO's basemaps started requiring
+  // a key and served "API KEY REQUIRED" placeholder tiles. Base + label
+  // layers are separate; native tiles stop at z16, Leaflet upscales past it.
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
+  L.tileLayer(ESRI + 'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    maxNativeZoom: 16,
+    attribution: 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
+  }).addTo(map);
+  L.tileLayer(ESRI + 'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    maxNativeZoom: 16,
   }).addTo(map);
 
   let LOGICAL_W = 800, LOGICAL_H = 600, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -324,10 +332,10 @@
     draw();
     if (startLL) beginSetup(); else { hint.textContent = 'Now pick a start point the same way.'; updateStats(); }
   }
-  canvas.addEventListener('click', async (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left, y = e.clientY - rect.top;
-    const latlng = map.containerPointToLatLng([x, y]);
+  // Listen on the Leaflet map, not the canvas: #mapCanvas is
+  // pointer-events: none (so the map stays pannable), so it never gets clicks.
+  map.on('click', async (e) => {
+    const latlng = e.latlng;
     if (startLL && endLL) resetAll();
     const label = (await reverseGeocode(latlng.lat, latlng.lng)) || `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
     if (!startLL) { startInput.value = label; setStart({ lat: latlng.lat, lon: latlng.lng, label }); }

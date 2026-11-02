@@ -445,8 +445,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* Team tab */
 .team-section { padding: 32px 24px 48px; }
-.team-wrap h2 { margin: 0 0 10px; font-size: 2.2rem; }
-.team-sub { color: var(--text-dim); font-size: 1.2rem; margin: 0 0 32px; max-width: 720px; }
+.team-wrap h2 { margin: 0 0 28px; font-size: 2.2rem; }
 
 .team-grid {
   display: grid;
@@ -466,8 +465,8 @@ input[type="range"]::-moz-range-thumb {
   text-align: center;
 }
 .team-avatar {
-  width: 84px;
-  height: 84px;
+  width: 120px;
+  height: 120px;
   margin: 0 auto 16px;
   border-radius: 50%;
   display: flex;
@@ -478,8 +477,25 @@ input[type="range"]::-moz-range-thumb {
   font-size: 1.5rem;
   color: #08120c;
 }
+.team-photo {
+  display: block;
+  object-fit: cover;
+  object-position: 50% 30%;
+  background: var(--panel);
+}
 .team-card h3 { margin: 0 0 4px; font-size: 1.2rem; }
 .team-card p { margin: 0; color: var(--text-dim); font-family: var(--font-mono); font-size: 0.95rem; }
+.team-meta {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 12px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+.team-meta dt { color: var(--text-dim); text-align: right; }
+.team-meta dd { margin: 0; text-align: left; }
 
 .team-gallery {
   margin-top: 32px;
